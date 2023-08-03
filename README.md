@@ -10,10 +10,43 @@ This will start a long-running container with `buienradar-mqtt` in it which runs
 available subcommands. The container is available for `amd64` and `aarch64`.
 
 ```
-podman run -e MQTT_HOST="tcp://hostname:1883" src.tty.cat/home.arpa/mqtt-cron:latest
+podman run \
+    -e MQTT_HOST="tcp://hostname:1883" \
+    -e MQTT_PREFIX="your-prefix" \
+    -e MQTT_TOPIC="buienradar" \
+    -e BUIENRADAR_REGION="rotterdam" \
+    ghcr.io/sensorhive/buienradar-mqtt:latest
 ```
 
 *The `podman` command can be switched out `docker` if you wish.*
+
+### quadlet
+
+Place the following file in `/etc/containers/systemd`:
+
+```
+[Unit]
+Description=The buienradar-mqtt container service.
+After=local-fs.target
+
+[Container]
+Image=ghcr.io/sensorhive/buienradar-mqtt:latest
+Environment=MQTT_HOST="tcp://hostname:1883"
+Environment=MQTT_PREFIX="your-prefix"
+Environment=MQTT_TOPIC="buienradar"
+Environment=BUIENRADAR_REGION="rotterdam"
+Label=io.containers.autoupdate=registry
+
+[Install]
+WantedBy=multi-user.target default.target
+```
+
+Followed by a:
+
+```
+systemctl daemon-reload
+systemctl enable --now buienradar-mqtt
+```
 
 ## usage 
 
